@@ -1,4 +1,4 @@
-const RENDER_TIMEOUT = 500;
+const RENDER_TIMEOUT = 100;
 
 const CELL_SIZE = 75;
 const WORLD_SIZE = 10;

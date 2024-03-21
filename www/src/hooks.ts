@@ -1,4 +1,4 @@
-import { Direction } from "snake_game";
+import { Direction } from "libum";
 
 export const keyboardControls = (key: string): Direction => {
 	switch (key) {

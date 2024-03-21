@@ -1,9 +1,9 @@
 import * as config from "./static-config";
 import "./style.css";
-import init, { World } from "snake_game";
-import { keyboardControls } from "./hook"
+import init, { World } from "libum";
+import { keyboardControls } from "./hooks"
 
-await init();
+const wasm = await init();
 
 const app = document.querySelector<HTMLDivElement>("#app") as HTMLDivElement;
 app.innerHTML = `
@@ -17,7 +17,16 @@ const extra = document.getElementById("extra") as HTMLCanvasElement;
 const world = World.new(config.WORLD_SIZE, config.SNAKE_INITIAL_IDX, config.SNAKE_INITIAL_SIZE);
 
 const context = container.getContext("2d") as CanvasRenderingContext2D;
+
 const WORLD_SIZE = world.size();
+const SNAKE_POINTER = world.get_snake_ptr();
+const SNAKE_LENGTH = world.get_snake_length();
+
+const SNAKE_CELLS = new Uint32Array(
+	wasm.memory.buffer,
+	SNAKE_POINTER,
+	SNAKE_LENGTH
+);
 
 container.height = WORLD_SIZE * config.CELL_SIZE;
 container.width = WORLD_SIZE * config.CELL_SIZE;

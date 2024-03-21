@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "snake_game": "file:../pkg"
+    "libum": "file:../pkg"
   },
   "devDependencies": {
     "typescript": "^5.2.2",

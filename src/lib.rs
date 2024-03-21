@@ -4,7 +4,8 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[derive(Clone, Copy)]
-struct SnakeCell(usize);
+#[wasm_bindgen]
+pub struct SnakeCell(usize);
 
 #[wasm_bindgen]
 #[derive(PartialEq, Clone, Copy)]
@@ -69,6 +70,17 @@ impl World {
 
     pub fn snake_head_pos(&self) -> usize {
         self.snake.position[0].0
+    }
+
+    /// Working with raw pointers
+    /// *const is similar to &, although it claims
+    /// that you're working with an actual pointer
+    pub fn get_snake_ptr(&self) -> *const SnakeCell {
+        self.snake.position.as_ptr()
+    }
+
+    pub fn get_snake_length(&self) -> usize {
+        self.snake.position.len()
     }
 
     pub fn update(&mut self) {
