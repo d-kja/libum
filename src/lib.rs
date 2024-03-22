@@ -36,19 +36,78 @@ impl Snake {
         }
     }
 
-    fn update_head(&mut self, idx: usize) {
-        self.position[0].0 = idx;
+    fn update_cell(&mut self, snake_cell: SnakeCell, index_cell: usize) {
+        self.position[index_cell] = snake_cell;
     }
 
     pub fn update_direction(&mut self, direction: Direction) {
         self.direction = direction;
+    }
+
+    pub fn snake_head_pos(&self) -> usize {
+        self.position[0].0
+    }
+
+    pub fn step(&mut self, world_size: usize) {
+        let current_positions = self.position.clone();
+        let mut last_cell_position: Option<SnakeCell> = None;  
+
+        for (idx, cell) in current_positions.iter().enumerate() {
+            let next_cell = if let Some(value) = last_cell_position {
+                self.generate_next_cell(value.0, world_size)
+            } else {
+                self.generate_next_cell(cell.0, world_size)
+            };
+            
+            self.update_cell(next_cell, idx);
+            last_cell_position = Some(*cell);
+        }
+    }
+
+    fn generate_next_cell(&self, snake_idx: usize, world_size: usize) -> SnakeCell {
+        let world_total_size = world_size * world_size;
+        let row = snake_idx / world_size;
+
+        let rows_passed = row * world_size;
+
+        fn is_negative(value: usize, fallback: usize) -> usize {
+            match value as isize {
+                n if (0..).contains(&n) => value,
+                _ => fallback,
+            }
+        }
+
+        let next_index = match self.direction {
+            Direction::RIGHT => {
+                let column = (snake_idx + 1) % world_size;
+                rows_passed + column
+            }
+            Direction::LEFT => {
+                let column = is_negative(snake_idx - 1, world_size - 1) % world_size;
+                rows_passed + column
+            }
+            Direction::UP => {
+                let current_column = snake_idx % world_size;
+                let current_index = rows_passed + current_column;
+
+                let next_index = current_index - world_size;
+                let fallback_index = (world_size - 1) * world_size + current_column;
+
+                is_negative(next_index, fallback_index)
+            }
+            Direction::DOWN => {
+                let next_row = snake_idx + world_size;
+                next_row % world_total_size
+            }
+        };
+
+        SnakeCell(next_index)
     }
 }
 
 #[wasm_bindgen]
 pub struct World {
     size: usize,
-    total_size: usize,
     snake: Snake,
 }
 
@@ -59,7 +118,6 @@ impl World {
 
         Self {
             size,
-            total_size: size * size,
             snake: Snake::new(initial_idx, snake_size),
         }
     }
@@ -68,8 +126,12 @@ impl World {
         self.size
     }
 
-    pub fn snake_head_pos(&self) -> usize {
-        self.snake.position[0].0
+    pub fn update_snake_direction(&mut self, direction: Direction) {
+        self.snake.update_direction(direction);
+    }
+
+    pub fn update_step(&mut self) {
+        self.snake.step(self.size);
     }
 
     /// Working with raw pointers
@@ -81,43 +143,5 @@ impl World {
 
     pub fn get_snake_length(&self) -> usize {
         self.snake.position.len()
-    }
-
-    pub fn update(&mut self) {
-        let snake_idx: usize = self.snake_head_pos();
-        let row = snake_idx / self.size;
-
-        fn is_negative(value: usize, fallback: usize) -> usize {
-            match value as isize {
-                n if (0..).contains(&n) => {
-                    value
-                },
-                _ => fallback
-            }
-        }
-
-        match self.snake.direction {
-            Direction::RIGHT => {
-                let next_column = (snake_idx + 1) % self.size;
-                self.snake.update_head((row * self.size) + next_column);
-            }
-            Direction::LEFT => {
-                let next_column = is_negative(snake_idx - 1, self.size - 1) % self.size;
-                self.snake.update_head((row * self.size) + next_column);
-            }
-            Direction::UP => {
-                let column = snake_idx % self.size;
-                let next_row = is_negative(((row * self.size) + column) - self.size, (self.size - 1) * self.size + column);
-                
-                self.snake.update_head(next_row);
-            }
-            Direction::DOWN => {
-                self.snake.update_head((snake_idx + self.size) % self.total_size);
-            }
-        };
-    }
-
-    pub fn update_snake_direction(&mut self, direction: Direction) {
-        self.snake.direction = direction;
     }
 }
