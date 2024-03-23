@@ -54,13 +54,13 @@ impl Snake {
 
         for (idx, cell) in current_positions.iter().enumerate() {
             let next_cell = if let Some(value) = last_cell_position {
-                self.generate_next_cell(value.0, world_size)
+                SnakeCell(value.0)
             } else {
                 self.generate_next_cell(cell.0, world_size)
             };
             
+            last_cell_position = Some(cell.clone());
             self.update_cell(next_cell, idx);
-            last_cell_position = Some(*cell);
         }
     }
 
