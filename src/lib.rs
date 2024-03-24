@@ -3,6 +3,11 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+#[wasm_bindgen(module = "/www/utils/now.ts")]
+extern "C" {
+    fn now() -> usize;
+}
+
 #[derive(Clone, Copy)]
 #[wasm_bindgen]
 pub struct SnakeCell(usize);
@@ -20,6 +25,7 @@ pub enum Direction {
 pub struct Snake {
     position: Vec<SnakeCell>,
     direction: Direction,
+    reward_cell: Option<usize>,
 }
 
 impl Snake {
@@ -33,6 +39,7 @@ impl Snake {
         Self {
             position: snake_position,
             direction: Direction::RIGHT,
+            reward_cell: None,
         }
     }
 
@@ -40,7 +47,7 @@ impl Snake {
         self.position[index_cell] = snake_cell;
     }
 
-    fn is_opposite_direction(&self, direction_to_compare: Direction) -> bool {
+    fn is_opposite_direction(&self, direction_to_compare: &Direction) -> bool {
         let current_direction = self.direction;
 
         match direction_to_compare {
@@ -70,15 +77,11 @@ impl Snake {
     }
 
     pub fn update_direction(&mut self, direction: Direction) {
-        let is_opposite_direction = self.is_opposite_direction(direction);
+        let is_opposite_direction = self.is_opposite_direction(&direction);
 
-        if !is_opposite_direction {     
+        if !is_opposite_direction {
             self.direction = direction
         }
-    }
-
-    pub fn snake_head_pos(&self) -> usize {
-        self.position[0].0
     }
 
     pub fn step(&mut self, world_size: usize) {
@@ -148,15 +151,24 @@ pub struct World {
 impl World {
     pub fn new(world_size: usize, initial_idx: usize, snake_size: usize) -> Self {
         let size = world_size;
+        let reward_cell = World::generate_reward_cell(&size);
+        let mut snake = Snake::new(initial_idx, snake_size);
 
-        Self {
-            size,
-            snake: Snake::new(initial_idx, snake_size),
-        }
+        snake.reward_cell = Some(reward_cell);
+
+        Self { size, snake }
     }
 
     pub fn size(&self) -> usize {
         self.size
+    }
+
+    pub fn reward_cell(&self) -> Option<usize> {
+        self.snake.reward_cell
+    }
+
+    fn generate_reward_cell(size: &usize) -> usize {
+        now() % (size * size)
     }
 
     pub fn update_snake_direction(&mut self, direction: Direction) {

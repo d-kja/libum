@@ -7,12 +7,10 @@ const wasm = await init();
 
 const app = document.querySelector<HTMLDivElement>("#app") as HTMLDivElement;
 app.innerHTML = `
-  <span id="extra"></span>
   <canvas id="container"></canvas>
 `;
 
 const container = document.getElementById("container") as HTMLCanvasElement;
-const extra = document.getElementById("extra") as HTMLCanvasElement;
 
 const world = World.new(
 	config.WORLD_SIZE,
@@ -23,6 +21,7 @@ const world = World.new(
 const context = container.getContext("2d") as CanvasRenderingContext2D;
 
 const WORLD_SIZE = world.size();
+const REWARD_CELL = world.reward_cell();
 const SNAKE_POINTER = world.get_snake_ptr();
 const SNAKE_LENGTH = world.get_snake_length();
 
@@ -32,10 +31,6 @@ context.strokeStyle = config.STROKE_COLOR;
 
 const clearCanvas = () =>
 	context.clearRect(0, 0, container.width, container.height);
-
-const updateHeader = () => {
-	extra.innerHTML = "<b>Snake game</b>";
-};
 
 const drawWorld = () => {
 	context.beginPath();
@@ -58,6 +53,34 @@ const drawWorld = () => {
 	context.stroke();
 };
 
+const drawRewardCell = () => {
+	if (!REWARD_CELL) return
+
+	const row = Math.floor(REWARD_CELL / WORLD_SIZE);
+	const column = REWARD_CELL % WORLD_SIZE;
+
+	const padding = config.CELL_SIZE * 0.35;
+
+	const rewardSize = config.CELL_SIZE - padding * 2;
+	const rewardX = column * config.CELL_SIZE + padding;
+	const rewardY = row * config.CELL_SIZE + padding;
+
+	context.beginPath();
+
+	context.fillStyle = "#a5b4fc";
+	context.fillRect(
+		rewardX - rewardSize * 0.15,
+		rewardY - rewardSize * 0.15,
+		rewardSize + rewardSize * 0.15 * 2,
+		rewardSize + rewardSize * 0.15 * 2,
+	);
+
+	context.fillStyle = config.FILL_REWARD_COLOR;
+	context.fillRect(rewardX, rewardY, rewardSize, rewardSize);
+
+	context.stroke();
+};
+
 const drawSnake = () => {
 	const snakeCells = new Uint32Array(
 		wasm.memory.buffer,
@@ -65,7 +88,7 @@ const drawSnake = () => {
 		SNAKE_LENGTH,
 	);
 
-	const first_index = snakeCells[0]
+	const first_index = snakeCells[0];
 
 	for (const snakeIndex of snakeCells) {
 		const column = snakeIndex % WORLD_SIZE;
@@ -78,9 +101,9 @@ const drawSnake = () => {
 
 		const snake_x = config.CELL_SIZE * column;
 		const snake_y = config.CELL_SIZE * row;
-		
+
 		context.fillStyle = config.FILL_COLOR;
-		if (first_index === snakeIndex) context.fillStyle = config.FILL_HEAD_COLOR
+		if (first_index === snakeIndex) context.fillStyle = config.FILL_HEAD_COLOR;
 
 		context.fillRect(snake_x, snake_y, config.CELL_SIZE, config.CELL_SIZE);
 	}
@@ -89,10 +112,10 @@ const drawSnake = () => {
 };
 
 const render = () => {
-	updateHeader();
 	clearCanvas();
 
 	drawWorld();
+	drawRewardCell();
 	drawSnake();
 
 	world.update_step();
