@@ -40,8 +40,41 @@ impl Snake {
         self.position[index_cell] = snake_cell;
     }
 
+    fn is_opposite_direction(&self, direction_to_compare: Direction) -> bool {
+        let current_direction = self.direction;
+
+        match direction_to_compare {
+            Direction::LEFT => {
+                if current_direction == Direction::RIGHT {
+                    return true;
+                }
+            }
+            Direction::RIGHT => {
+                if current_direction == Direction::LEFT {
+                    return true;
+                }
+            }
+            Direction::UP => {
+                if current_direction == Direction::DOWN {
+                    return true;
+                }
+            }
+            Direction::DOWN => {
+                if current_direction == Direction::UP {
+                    return true;
+                }
+            }
+        };
+
+        false
+    }
+
     pub fn update_direction(&mut self, direction: Direction) {
-        self.direction = direction;
+        let is_opposite_direction = self.is_opposite_direction(direction);
+
+        if !is_opposite_direction {     
+            self.direction = direction
+        }
     }
 
     pub fn snake_head_pos(&self) -> usize {
@@ -50,16 +83,16 @@ impl Snake {
 
     pub fn step(&mut self, world_size: usize) {
         let current_positions = self.position.clone();
-        let mut last_cell_position: Option<SnakeCell> = None;  
+        let mut last_cell_position: Option<usize> = None;
 
         for (idx, cell) in current_positions.iter().enumerate() {
             let next_cell = if let Some(value) = last_cell_position {
-                SnakeCell(value.0)
+                SnakeCell(value)
             } else {
                 self.generate_next_cell(cell.0, world_size)
             };
-            
-            last_cell_position = Some(cell.clone());
+
+            last_cell_position = Some(cell.0);
             self.update_cell(next_cell, idx);
         }
     }

@@ -29,7 +29,6 @@ const SNAKE_LENGTH = world.get_snake_length();
 container.height = WORLD_SIZE * config.CELL_SIZE;
 container.width = WORLD_SIZE * config.CELL_SIZE;
 context.strokeStyle = config.STROKE_COLOR;
-context.fillStyle = config.FILL_COLOR;
 
 const clearCanvas = () =>
 	context.clearRect(0, 0, container.width, container.height);
@@ -66,6 +65,8 @@ const drawSnake = () => {
 		SNAKE_LENGTH,
 	);
 
+	const first_index = snakeCells[0]
+
 	for (const snakeIndex of snakeCells) {
 		const column = snakeIndex % WORLD_SIZE;
 		const row = Math.floor(
@@ -77,6 +78,9 @@ const drawSnake = () => {
 
 		const snake_x = config.CELL_SIZE * column;
 		const snake_y = config.CELL_SIZE * row;
+		
+		context.fillStyle = config.FILL_COLOR;
+		if (first_index === snakeIndex) context.fillStyle = config.FILL_HEAD_COLOR
 
 		context.fillRect(snake_x, snake_y, config.CELL_SIZE, config.CELL_SIZE);
 	}

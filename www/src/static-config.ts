@@ -1,12 +1,13 @@
-const RENDER_TIMEOUT = 250;
+const RENDER_TIMEOUT = 150;
 
 const CELL_SIZE = 75;
 const WORLD_SIZE = 10;
 const SNAKE_INITIAL_IDX = Date.now() % (WORLD_SIZE * WORLD_SIZE);
 const SNAKE_INITIAL_SIZE = 3;
 
-const STROKE_COLOR = '#FFF';
+const STROKE_COLOR = '#3f3f46';
 const FILL_COLOR = '#3f3f46';
+const FILL_HEAD_COLOR = '#52525b';
 
 export {
   RENDER_TIMEOUT,
@@ -15,5 +16,6 @@ export {
   SNAKE_INITIAL_IDX,
   SNAKE_INITIAL_SIZE,
   STROKE_COLOR,
-  FILL_COLOR
+  FILL_COLOR,
+  FILL_HEAD_COLOR
 }
