@@ -21,9 +21,6 @@ const world = World.new(
 const context = container.getContext("2d") as CanvasRenderingContext2D;
 
 const WORLD_SIZE = world.size();
-const REWARD_CELL = world.reward_cell();
-const SNAKE_POINTER = world.get_snake_ptr();
-const SNAKE_LENGTH = world.get_snake_length();
 
 container.height = WORLD_SIZE * config.CELL_SIZE;
 container.width = WORLD_SIZE * config.CELL_SIZE;
@@ -54,10 +51,14 @@ const drawWorld = () => {
 };
 
 const drawRewardCell = () => {
-	if (!REWARD_CELL) return
+	const rewardCell = world.reward_cell();
 
-	const row = Math.floor(REWARD_CELL / WORLD_SIZE);
-	const column = REWARD_CELL % WORLD_SIZE;
+	console.log(rewardCell)
+
+	if (!rewardCell) return
+
+	const row = Math.floor(rewardCell / WORLD_SIZE);
+	const column = rewardCell % WORLD_SIZE;
 
 	const padding = config.CELL_SIZE * 0.35;
 
@@ -82,10 +83,13 @@ const drawRewardCell = () => {
 };
 
 const drawSnake = () => {
+	const snakePointer = world.get_snake_ptr();
+	const snakeLength = world.get_snake_length();
+
 	const snakeCells = new Uint32Array(
 		wasm.memory.buffer,
-		SNAKE_POINTER,
-		SNAKE_LENGTH,
+		snakePointer,
+		snakeLength,
 	);
 
 	const first_index = snakeCells[0];

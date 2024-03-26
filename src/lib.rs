@@ -3,14 +3,20 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-#[wasm_bindgen(module = "/www/utils/now.ts")]
+#[wasm_bindgen(module = "/www/utils/random.ts")]
 extern "C" {
-    fn now() -> usize;
+    fn random(max: usize) -> usize;
 }
 
 #[derive(Clone, Copy)]
 #[wasm_bindgen]
 pub struct SnakeCell(usize);
+
+impl PartialEq for SnakeCell {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
 
 #[wasm_bindgen]
 #[derive(PartialEq, Clone, Copy)]
@@ -98,6 +104,11 @@ impl Snake {
             last_cell_position = Some(cell.0);
             self.update_cell(next_cell, idx);
         }
+
+        if self.position[0].0 == self.reward_cell.unwrap_or(usize::MAX) {
+            self.position.push(SnakeCell(self.position[1].0));
+            self.reward_cell = None;
+        }
     }
 
     fn generate_next_cell(&self, snake_idx: usize, world_size: usize) -> SnakeCell {
@@ -151,10 +162,10 @@ pub struct World {
 impl World {
     pub fn new(world_size: usize, initial_idx: usize, snake_size: usize) -> Self {
         let size = world_size;
-        let reward_cell = World::generate_reward_cell(&size);
         let mut snake = Snake::new(initial_idx, snake_size);
+        let reward_cell = Self::generate_reward_cell(&snake.position, size);
 
-        snake.reward_cell = Some(reward_cell);
+        snake.reward_cell = reward_cell;
 
         Self { size, snake }
     }
@@ -167,8 +178,24 @@ impl World {
         self.snake.reward_cell
     }
 
-    fn generate_reward_cell(size: &usize) -> usize {
-        now() % (size * size)
+    fn generate_reward_cell(positions: &Vec<SnakeCell>, size: usize) -> Option<usize> {
+        let mut reward_cell;
+
+        loop {
+            reward_cell = World::generate_random_cell(&size);
+
+            if !positions.contains(&SnakeCell(reward_cell)) {
+                break;
+            }
+        }
+
+        Some(reward_cell)
+    }
+
+    fn generate_random_cell(size: &usize) -> usize {
+        let total_size = size * size;
+        
+        random(total_size)
     }
 
     pub fn update_snake_direction(&mut self, direction: Direction) {
@@ -177,6 +204,12 @@ impl World {
 
     pub fn update_step(&mut self) {
         self.snake.step(self.size);
+
+        if self.snake.reward_cell.is_none() {
+            let new_reward_cell = World::generate_reward_cell(&self.snake.position, self.size);
+
+            self.snake.reward_cell = new_reward_cell;
+        }
     }
 
     /// Working with raw pointers
