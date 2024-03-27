@@ -105,7 +105,14 @@ impl Snake {
             self.update_cell(next_cell, idx);
         }
 
-        if self.position[0].0 == self.reward_cell.unwrap_or(usize::MAX) {
+        let snake_head_idx = self.position[0].0;
+        let reward_idx = self.reward_cell.unwrap_or(usize::MAX);
+
+        if snake_head_idx == reward_idx {
+            if self.position.len() >= world_size {
+                return;
+            }
+
             self.position.push(SnakeCell(self.position[1].0));
             self.reward_cell = None;
         }
