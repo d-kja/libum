@@ -1,7 +1,7 @@
-const RENDER_TIMEOUT = 150;
+const RENDER_TIMEOUT = 100;
 
-const CELL_SIZE = 75;
-const WORLD_SIZE = 10;
+const CELL_SIZE = window.screen.height / 25;
+const WORLD_SIZE = window.screen.height / 50;
 const SNAKE_INITIAL_IDX = Date.now() % (WORLD_SIZE * WORLD_SIZE);
 const SNAKE_INITIAL_SIZE = 3;
 

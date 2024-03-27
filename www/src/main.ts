@@ -1,15 +1,12 @@
 import * as config from "./static-config";
 import "./style.css";
-import init, { World } from "libum";
+import init, { GameStatus, World } from "libum";
 import { keyboardControls } from "./hooks";
 
 const wasm = await init();
 
-const app = document.querySelector<HTMLDivElement>("#app") as HTMLDivElement;
-app.innerHTML = `
-  <canvas id="container"></canvas>
-`;
-
+const status = document.getElementById("game-status") as HTMLDivElement;
+const button = document.getElementById("game-button") as HTMLButtonElement;
 const container = document.getElementById("container") as HTMLCanvasElement;
 
 const world = World.new(
@@ -25,6 +22,27 @@ const WORLD_SIZE = world.size();
 container.height = WORLD_SIZE * config.CELL_SIZE;
 container.width = WORLD_SIZE * config.CELL_SIZE;
 context.strokeStyle = config.STROKE_COLOR;
+
+const changeGameStatus = (status?: keyof typeof GameStatus) => {
+	switch (status) {
+		case "STARTED":
+			world.change_status(GameStatus.STARTED);
+			break;
+		case "WON":
+			world.change_status(GameStatus.WON);
+			break;
+		case "LOST":
+			world.change_status(GameStatus.LOST);
+			break;
+
+		default:
+			world.change_status(undefined);
+			break;
+	}
+};
+
+button.onclick = () =>
+	changeGameStatus(world.get_status() === undefined ? "STARTED" : undefined);
 
 const clearCanvas = () =>
 	context.clearRect(0, 0, container.width, container.height);
@@ -53,9 +71,7 @@ const drawWorld = () => {
 const drawRewardCell = () => {
 	const rewardCell = world.reward_cell();
 
-	console.log(rewardCell)
-
-	if (!rewardCell) return
+	if (!rewardCell) return;
 
 	const row = Math.floor(rewardCell / WORLD_SIZE);
 	const column = rewardCell % WORLD_SIZE;
@@ -115,10 +131,26 @@ const drawSnake = () => {
 	context.stroke();
 };
 
+const getStatus = () => {
+	const currentStatus = world.get_status();
+	if (!currentStatus) return;
+
+	return GameStatus[currentStatus];
+};
+
+const updateStatus = () => {
+	const currentStatus = getStatus();
+	const gameStatus = currentStatus ?? "waiting for player...";
+
+	button.innerHTML = currentStatus === "STARTED" ? "STOP" : "START";
+	status.innerHTML = `${gameStatus}`;
+};
+
 const render = () => {
 	clearCanvas();
 
 	drawWorld();
+	updateStatus();
 	drawRewardCell();
 	drawSnake();
 

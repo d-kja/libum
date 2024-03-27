@@ -28,10 +28,19 @@ pub enum Direction {
 }
 
 #[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub enum GameStatus {
+    WON,
+    LOST,
+    STARTED,
+}
+
+#[wasm_bindgen]
 pub struct Snake {
     position: Vec<SnakeCell>,
     direction: Direction,
     reward_cell: Option<usize>,
+    status: Option<GameStatus>,
 }
 
 impl Snake {
@@ -46,6 +55,7 @@ impl Snake {
             position: snake_position,
             direction: Direction::RIGHT,
             reward_cell: None,
+            status: None,
         }
     }
 
@@ -91,30 +101,35 @@ impl Snake {
     }
 
     pub fn step(&mut self, world_size: usize) {
-        let current_positions = self.position.clone();
-        let mut last_cell_position: Option<usize> = None;
+        match &self.status {
+            Some(GameStatus::STARTED) => {
+                let current_positions = self.position.clone();
+                let mut last_cell_position: Option<usize> = None;
 
-        for (idx, cell) in current_positions.iter().enumerate() {
-            let next_cell = if let Some(value) = last_cell_position {
-                SnakeCell(value)
-            } else {
-                self.generate_next_cell(cell.0, world_size)
-            };
+                for (idx, cell) in current_positions.iter().enumerate() {
+                    let next_cell = if let Some(value) = last_cell_position {
+                        SnakeCell(value)
+                    } else {
+                        self.generate_next_cell(cell.0, world_size)
+                    };
 
-            last_cell_position = Some(cell.0);
-            self.update_cell(next_cell, idx);
-        }
+                    last_cell_position = Some(cell.0);
+                    self.update_cell(next_cell, idx);
+                }
 
-        let snake_head_idx = self.position[0].0;
-        let reward_idx = self.reward_cell.unwrap_or(usize::MAX);
+                let snake_head_idx = self.position[0].0;
+                let reward_idx = self.reward_cell.unwrap_or(usize::MAX);
 
-        if snake_head_idx == reward_idx {
-            if self.position.len() >= world_size {
-                return;
+                if snake_head_idx == reward_idx {
+                    if self.position.len() >= world_size {
+                        return;
+                    }
+
+                    self.position.push(SnakeCell(self.position[1].0));
+                    self.reward_cell = None;
+                }
             }
-
-            self.position.push(SnakeCell(self.position[1].0));
-            self.reward_cell = None;
+            _ => return,
         }
     }
 
@@ -201,7 +216,7 @@ impl World {
 
     fn generate_random_cell(size: &usize) -> usize {
         let total_size = size * size;
-        
+
         random(total_size)
     }
 
@@ -217,6 +232,14 @@ impl World {
 
             self.snake.reward_cell = new_reward_cell;
         }
+    }
+
+    pub fn change_status(&mut self, status: Option<GameStatus>) {
+        self.snake.status = status;
+    } 
+
+    pub fn get_status(&self) -> Option<GameStatus> {
+        self.snake.status
     }
 
     /// Working with raw pointers

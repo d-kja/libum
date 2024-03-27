@@ -7,7 +7,18 @@
     <title>Snake game</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <section title="dashboard" class="flex justify-between align-center gap-2">
+        <div class="flex gap-2">
+          <span>Status:</span>
+          <span id="game-status"></span>
+        </div>
+        <button class="btn btn-primary" id="game-button">
+          START
+        </button>
+      </section>
+      <canvas id="container"></canvas>
+    </div>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
