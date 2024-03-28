@@ -122,6 +122,7 @@ impl Snake {
 
                 if snake_head_idx == reward_idx {
                     if self.position.len() >= world_size {
+                        self.status = Some(GameStatus::WON);
                         return;
                     }
 

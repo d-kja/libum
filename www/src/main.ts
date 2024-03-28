@@ -133,7 +133,7 @@ const drawSnake = () => {
 
 const getStatus = () => {
 	const currentStatus = world.get_status();
-	if (!currentStatus) return;
+	if (!currentStatus && currentStatus !== 0) return;
 
 	return GameStatus[currentStatus];
 };
@@ -141,6 +141,8 @@ const getStatus = () => {
 const updateStatus = () => {
 	const currentStatus = getStatus();
 	const gameStatus = currentStatus ?? "waiting for player...";
+
+	console.log(world.get_status())
 
 	button.innerHTML = currentStatus === "STARTED" ? "STOP" : "START";
 	status.innerHTML = `${gameStatus}`;
