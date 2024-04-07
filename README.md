@@ -10,7 +10,7 @@ First, you'd need to clone this project and install the dependencies. For rust, 
 
 <br />
 
-With all of that out of the way, you need to compile the rust code to wasm, to do so you need to run the following in the root of the project 
+With all of that out of the way, you need to compile the rust code to wasm with [wasm-pack](https://rustwasm.github.io/wasm-pack/installer), to do so you need to run the following in the root of the project 
 
 ```bash
 wasm-pack build --target web
