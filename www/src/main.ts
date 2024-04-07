@@ -6,14 +6,19 @@ import { keyboardControls } from "./hooks";
 const wasm = await init();
 
 const status = document.getElementById("game-status") as HTMLDivElement;
+const points = document.getElementById("game-points") as HTMLDivElement;
 const button = document.getElementById("game-button") as HTMLButtonElement;
 const container = document.getElementById("container") as HTMLCanvasElement;
 
-const world = World.new(
-	config.WORLD_SIZE,
-	config.SNAKE_INITIAL_IDX,
-	config.SNAKE_INITIAL_SIZE,
-);
+const createNewWorld = () =>
+	World.new(
+		config.WORLD_SIZE,
+		config.SNAKE_INITIAL_IDX,
+		config.SNAKE_INITIAL_SIZE,
+	);
+const createRenderLoop = () => setInterval(render, config.RENDER_TIMEOUT)
+
+let world = createNewWorld();
 
 const context = container.getContext("2d") as CanvasRenderingContext2D;
 
@@ -41,8 +46,31 @@ const changeGameStatus = (status?: keyof typeof GameStatus) => {
 	}
 };
 
-button.onclick = () =>
-	changeGameStatus(world.get_status() === undefined ? "STARTED" : undefined);
+const reset = () => {
+	world = createNewWorld();
+	renderLoop = createRenderLoop();
+
+	changeGameStatus();
+};
+
+button.onclick = () => {
+	const currentStatus = getStatus();
+
+	if (currentStatus === undefined) return changeGameStatus("STARTED");
+
+	switch (currentStatus) {
+		case "WON":
+			reset();
+			break;
+		case "LOST":
+			reset();
+			break;
+
+		default:
+			changeGameStatus();
+			break;
+	}
+};
 
 const clearCanvas = () =>
 	context.clearRect(0, 0, container.width, container.height);
@@ -140,21 +168,40 @@ const getStatus = () => {
 
 const updateStatus = () => {
 	const currentStatus = getStatus();
+	const currentPoints = world.get_points();
+	
 	const gameStatus = currentStatus ?? "waiting for player...";
+	
+	switch (currentStatus) {
+		case "STARTED":
+			button.innerHTML = "STOP";
+			break;
+		case "LOST":
+			clearTimeout(renderLoop)
+			button.innerHTML = "RESET";
+			break;
+		case "WON":
+			clearTimeout(renderLoop)
+			button.innerHTML = "RESET";
+			break;
 
-	console.log(world.get_status())
+		default:
+			button.innerHTML = "START"
+			break;
+	}
 
-	button.innerHTML = currentStatus === "STARTED" ? "STOP" : "START";
-	status.innerHTML = `${gameStatus}`;
+	points.innerHTML = currentPoints.toString().padStart(2, "0");
+	status.innerHTML = gameStatus.toString().toLowerCase();
 };
 
 const render = () => {
 	clearCanvas();
 
-	drawWorld();
 	updateStatus();
-	drawRewardCell();
+
+	drawWorld();
 	drawSnake();
+	drawRewardCell();
 
 	world.update_step();
 };
@@ -164,4 +211,5 @@ addEventListener("keydown", (ctx) => {
 	world.update_snake_direction(direction);
 });
 
-setInterval(render, config.RENDER_TIMEOUT);
+let renderLoop: ReturnType<typeof setTimeout> = createRenderLoop();
+

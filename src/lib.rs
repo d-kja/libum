@@ -120,6 +120,12 @@ impl Snake {
                 let snake_head_idx = self.position[0].0;
                 let reward_idx = self.reward_cell.unwrap_or(usize::MAX);
 
+                // Crashed on it's own body
+                if self.position[1..self.position.len()].contains(&self.position[0]) {
+                    self.status = Some(GameStatus::LOST);
+                    return;
+                }
+
                 if snake_head_idx == reward_idx {
                     if self.position.len() >= world_size {
                         self.status = Some(GameStatus::WON);
@@ -179,6 +185,7 @@ impl Snake {
 pub struct World {
     size: usize,
     snake: Snake,
+    points: usize,
 }
 
 #[wasm_bindgen]
@@ -190,7 +197,11 @@ impl World {
 
         snake.reward_cell = reward_cell;
 
-        Self { size, snake }
+        Self {
+            size,
+            snake,
+            points: 0,
+        }
     }
 
     pub fn size(&self) -> usize {
@@ -230,6 +241,7 @@ impl World {
 
         if self.snake.reward_cell.is_none() {
             let new_reward_cell = World::generate_reward_cell(&self.snake.position, self.size);
+            self.points += 1;
 
             self.snake.reward_cell = new_reward_cell;
         }
@@ -237,10 +249,14 @@ impl World {
 
     pub fn change_status(&mut self, status: Option<GameStatus>) {
         self.snake.status = status;
-    } 
+    }
 
     pub fn get_status(&self) -> Option<GameStatus> {
         self.snake.status
+    }
+
+    pub fn get_points(&self) -> usize {
+        self.points
     }
 
     /// Working with raw pointers
