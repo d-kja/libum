@@ -25,11 +25,6 @@ jobs:
       
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: './www'
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,9 +35,11 @@ jobs:
           bun-version: latest
       
       - name: Install packages
+        working-directory: './www'
         run: bun install --frozen-lockfile
 
       - name: Build project
+        working-directory: './www'
         run: bun run build
 
       - name: Setup Github Pages
@@ -51,7 +48,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist' # build output
+          path: './www/dist' # build output
 
       - name: Deploy to GitHub Pages
         id: deployment
