@@ -23,3 +23,7 @@ the folder is already linked in the package.json of the web application, however
 ```bash
 cd www && [package-manager] run dev
 ```
+
+## Preview
+
+<img width="100%" src="https://github.com/d-kja/libum/assets/89911360/f2156b97-bd2a-4289-b083-12ecac178bf8" />
